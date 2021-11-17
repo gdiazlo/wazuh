@@ -2,6 +2,7 @@
 #define _FIMDB_CPP_UNIT_TEST
 
 #include "fimDBImpTests.hpp"
+#include "commonDefs.h"
 #include <thread>
 
 constexpr auto MOCK_DB_PATH {"temp_fimdb_ut.db"};
@@ -13,9 +14,9 @@ void mockLoggingFunction(const modules_log_level_t logLevel, const char* tag)
     mockLog->loggingFunction(logLevel, tag);
 }
 
-void mockSyncMessage(const char* log, const char* tag)
+void mockSyncMessage(const char* log, const void* buffer)
 {
-    mockSync->syncMsg(log, tag);
+    mockSync->syncMsg(log, static_cast<const char *>(buffer));
 }
 class FimDBFixture : public ::testing::Test
 {

@@ -1,6 +1,6 @@
 /**
  * @file db_statement.hpp
- * @brief Definition of FIM database statements.
+ * @brief Definition of FIM database common definitions.
  * @date 2021-09-06
  *
  * @copyright Copyright (C) 2015-2021 Wazuh, Inc.
