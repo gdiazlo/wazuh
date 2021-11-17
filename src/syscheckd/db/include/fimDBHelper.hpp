@@ -17,7 +17,7 @@
 namespace FIMDBHelper
 {
 
-    void initDB(const std::string&, int, int, void(*sync_callback)(const char* log, const char* tag), void(*loggFunction)(modules_log_level_t level));
+    void initDB(int, int, void(*sync_callback)(const char* log, const char* tag), void(*loggFunction)(modules_log_level_t level));
 
     /**
     * @brief Insert a new row from a table.
@@ -177,14 +177,11 @@ namespace FIMDBHelper
     }
 
     template<typename T>
-    void FIMDBHelper::initDB(const std::string& path, unsigned int sync_interval, unsigned int file_limit,
-                            fim_sync_callback_t sync_callback,
-                            void(*loggFunction)(modules_log_level_t level))
+    void FIMDBHelper::initDB(unsigned int sync_interval, unsigned int file_limit,
+                            fim_sync_callback_t sync_callback, logging_callback_t logCallback,
+                            std::shared_ptr<DBSync>handler_DBSync, std::shared_ptr<RemoteSync>handler_RSync)
     {
-        auto handler_DBSync = std::make_shared<DBSync>(HostType::AGENT, DbEngineType::SQLITE3, path, T::CreateStatement());
-        auto handler_RSync = std::make_shared<RemoteSync>();
-
-        T::getInstance().init(sync_interval, file_limit, sync_callback, loggFunction, handler_DBSync, handler_RSync);
+        T::getInstance().init(sync_interval, file_limit, sync_callback, logCallback, handler_DBSync, handler_RSync);
     }
 }
 
