@@ -429,7 +429,8 @@ class AWSBucket(WazuhIntegration):
                                         WHERE
                                             bucket_path='{bucket_path}' AND
                                             aws_account_id='{aws_account_id}' AND
-                                            aws_region ='{aws_region}'
+                                            aws_region ='{aws_region}' AND
+                                            log_key LIKE '{prefix}%{suffix}%'
                                         ORDER BY
                                             created_date DESC
                                         LIMIT 1;"""
@@ -443,7 +444,7 @@ class AWSBucket(WazuhIntegration):
                                             bucket_path='{bucket_path}' AND
                                             aws_account_id='{aws_account_id}' AND
                                             aws_region = '{aws_region}' AND
-                                            log_key LIKE '{prefix}%'
+                                            log_key LIKE '{prefix}%{suffix}%'
                                         ORDER BY
                                             log_key DESC
                                         LIMIT 1;"""
@@ -456,7 +457,8 @@ class AWSBucket(WazuhIntegration):
                                         WHERE
                                             bucket_path='{bucket_path}' AND
                                             aws_account_id='{aws_account_id}' AND
-                                            aws_region = '{aws_region}'
+                                            aws_region = '{aws_region}' AND
+                                            log_key LIKE '{prefix}%{suffix}%'
                                         ORDER BY
                                             log_key ASC
                                         LIMIT 1;"""
@@ -468,6 +470,7 @@ class AWSBucket(WazuhIntegration):
                                 bucket_path='{bucket_path}' AND
                                 aws_account_id='{aws_account_id}' AND
                                 aws_region='{aws_region}' AND
+                                log_key LIKE '{prefix}%{suffix}' AND
                                 log_key <=
                                 (SELECT log_key
                                     FROM
@@ -475,7 +478,8 @@ class AWSBucket(WazuhIntegration):
                                     WHERE
                                         bucket_path='{bucket_path}' AND
                                         aws_account_id='{aws_account_id}' AND
-                                        aws_region='{aws_region}'
+                                        aws_region='{aws_region}' AND
+                                        log_key LIKE '{prefix}%{suffix}%'                                        
                                     ORDER BY
                                         log_key DESC
                                     LIMIT 1
@@ -554,7 +558,8 @@ class AWSBucket(WazuhIntegration):
         """
         query_last_key = self.db_connector.execute(
             self.sql_find_last_key_processed.format(table_name=self.db_table_name, bucket_path=self.bucket_path,
-                                                    aws_account_id=aws_account_id, prefix=self.prefix))
+                                                    aws_account_id=aws_account_id, prefix=self.prefix,
+                                                    suffix=self.suffix))
         try:
             return query_last_key.fetchone()[0]
         except (TypeError, IndexError):
@@ -647,7 +652,9 @@ class AWSBucket(WazuhIntegration):
                     table_name=self.db_table_name,
                     aws_account_id=aws_account_id,
                     aws_region=aws_region,
-                    retain_db_records=self.retain_db_records
+                    retain_db_records=self.retain_db_records,
+                    prefix=self.prefix,
+                    suffix=self.suffix
                 ))
         except Exception as e:
             print(
@@ -756,7 +763,8 @@ class AWSBucket(WazuhIntegration):
                         table_name=self.db_table_name,
                         aws_account_id=aws_account_id,
                         aws_region=aws_region,
-                        prefix=self.prefix
+                        prefix=self.prefix,
+                        suffix=self.suffix
                     )
                 )
                 try:
@@ -770,7 +778,8 @@ class AWSBucket(WazuhIntegration):
                                                         table_name=self.db_table_name,
                                                         aws_account_id=aws_account_id,
                                                         aws_region=aws_region,
-                                                        prefix=self.prefix))
+                                                        prefix=self.prefix,
+                                                        suffix=self.suffix))
             try:
                 filter_marker = query_last_key.fetchone()[0]
             except (TypeError, IndexError):
@@ -1128,7 +1137,8 @@ class AWSConfigBucket(AWSLogsBucket):
                                                     bucket_path='{bucket_path}' AND
                                                     aws_account_id='{aws_account_id}' AND
                                                     aws_region = '{aws_region}' AND
-                                                    created_date = {created_date}
+                                                    created_date = {created_date} AND
+                                                    log_key LIKE '{prefix}%{suffix}%'
                                                 ORDER BY
                                                     log_key DESC
                                                 LIMIT 1;"""
@@ -1159,7 +1169,9 @@ class AWSConfigBucket(AWSLogsBucket):
                     bucket_path=self.bucket_path,
                     aws_account_id=aws_account_id,
                     aws_region=aws_region,
-                    prefix=self.prefix))
+                    prefix=self.prefix,
+                    suffix=self.suffix
+                ))
                 # query returns an integer
                 last_date_processed = str(query_date_last_log.fetchone()[0])
             # if DB is empty
@@ -1276,7 +1288,8 @@ class AWSConfigBucket(AWSLogsBucket):
                         table_name=self.db_table_name,
                         aws_account_id=aws_account_id,
                         aws_region=aws_region,
-                        prefix=self.prefix
+                        prefix=self.prefix,
+                        suffix=self.suffix
                     )
                 )
                 try:
@@ -1292,7 +1305,8 @@ class AWSConfigBucket(AWSLogsBucket):
                                                                bucket_path=self.bucket_path,
                                                                aws_account_id=aws_account_id,
                                                                aws_region=aws_region,
-                                                               created_date=created_date, prefix=self.prefix))
+                                                               created_date=created_date, prefix=self.prefix,
+                                                               suffix=self.suffix))
             try:
                 filter_marker = query_last_key_of_day.fetchone()[0]
             except (TypeError, IndexError) as e:
@@ -1542,7 +1556,8 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                                                     aws_account_id='{aws_account_id}' AND
                                                     aws_region = '{aws_region}' AND
                                                     flow_log_id = '{flow_log_id}' AND
-                                                    created_date = {created_date}
+                                                    created_date = {created_date} AND
+                                                    log_key LIKE '{prefix}%{suffix}%'
                                                 ORDER BY
                                                     log_key DESC
                                                 LIMIT 1;"""
@@ -1556,7 +1571,8 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                                                 bucket_path='{bucket_path}' AND
                                                 aws_account_id='{aws_account_id}' AND
                                                 aws_region = '{aws_region}' AND
-                                                flow_log_id = '{flow_log_id}'
+                                                flow_log_id = '{flow_log_id}' AND
+                                                log_key LIKE '{prefix}%{suffix}%'
                                             ORDER BY
                                                 log_key DESC
                                             LIMIT 1;"""
@@ -1569,6 +1585,7 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                                 aws_account_id='{aws_account_id}' AND
                                 aws_region='{aws_region}' AND
                                 flow_log_id='{flow_log_id}' AND
+                                log_key LIKE '{prefix}%{suffix}' AND
                                 log_key <=
                                 (SELECT log_key
                                     FROM
@@ -1577,7 +1594,8 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                                         bucket_path='{bucket_path}' AND
                                         aws_account_id='{aws_account_id}' AND
                                         aws_region='{aws_region}' AND
-                                        flow_log_id='{flow_log_id}'
+                                        flow_log_id='{flow_log_id}' AND
+                                        log_key LIKE '{prefix}%{suffix}%'
                                     ORDER BY
                                         log_key DESC
                                     LIMIT 1
@@ -1668,7 +1686,10 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                 bucket_path=self.bucket_path,
                 aws_account_id=aws_account_id,
                 aws_region=aws_region,
-                flow_log_id=flow_log_id))
+                flow_log_id=flow_log_id,
+                suffix=self.suffix,
+                prefix=self.prefix
+            ))
             # query returns an integer
             last_date_processed = str(query_date_last_log.fetchone()[0])
         # if DB is empty
@@ -1741,7 +1762,9 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                     aws_account_id=aws_account_id,
                     aws_region=aws_region,
                     flow_log_id=flow_log_id,
-                    retain_db_records=self.retain_db_records
+                    retain_db_records=self.retain_db_records,
+                    prefix=self.prefix,
+                    suffix=self.suffix
                 ))
         except Exception as e:
             print(
@@ -1767,7 +1790,8 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                         table_name=self.db_table_name,
                         aws_account_id=aws_account_id,
                         aws_region=aws_region,
-                        prefix=self.prefix
+                        prefix=self.prefix,
+                        suffix=self.suffix
                     )
                 )
                 try:
@@ -1783,7 +1807,9 @@ class AWSVPCFlowBucket(AWSLogsBucket):
                                                                aws_account_id=aws_account_id,
                                                                aws_region=aws_region,
                                                                flow_log_id=flow_log_id,
-                                                               created_date=int(date.replace('/', ''))))
+                                                               created_date=int(date.replace('/', '')),
+                                                               prefix=self.prefix,
+                                                               suffix=self.suffix))
             try:
                 filter_marker = query_last_key_of_day.fetchone()[0]
             except (TypeError, IndexError) as e:
@@ -1967,7 +1993,8 @@ class AWSCustomBucket(AWSBucket):
                                             {table_name}
                                         WHERE
                                             bucket_path='{bucket_path}' AND
-                                            aws_account_id='{aws_account_id}'
+                                            aws_account_id='{aws_account_id}' AND
+                                            log_key LIKE '{prefix}%{suffix}%'
                                         ORDER BY
                                             created_date DESC
                                         LIMIT 1;"""
@@ -1980,7 +2007,7 @@ class AWSCustomBucket(AWSBucket):
                                         WHERE
                                             bucket_path='{bucket_path}' AND
                                             aws_account_id='{aws_account_id}' AND
-                                            log_key LIKE '{prefix}%'
+                                            log_key LIKE '{prefix}%{suffix}%'
                                         ORDER BY
                                             log_key DESC
                                         LIMIT 1;"""
@@ -1991,13 +2018,15 @@ class AWSCustomBucket(AWSBucket):
                             WHERE
                                 bucket_path='{bucket_path}' AND
                                 aws_account_id='{aws_account_id}' AND
+                                log_key LIKE '{prefix}%{suffix}' AND
                                 log_key <=
                                 (SELECT log_key
                                     FROM
                                         {table_name}
                                     WHERE
                                         bucket_path='{bucket_path}' AND
-                                        aws_account_id='{aws_account_id}'
+                                        aws_account_id='{aws_account_id}' AND
+                                        LIKE '{prefix}%{suffix}%'
                                     ORDER BY
                                         log_key DESC
                                     LIMIT 1
@@ -2145,7 +2174,9 @@ class AWSCustomBucket(AWSBucket):
                     table_name=self.db_table_name,
                     bucket_path=self.bucket_path,
                     aws_account_id=self.aws_account_id,
-                    retain_db_records=self.retain_db_records
+                    retain_db_records=self.retain_db_records,
+                    prefix=self.prefix,
+                    suffix=self.suffix
                 ))
         except Exception as e:
             print(
